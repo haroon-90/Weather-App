@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      background: linear-gradient(180deg, #ffffff, #0000ff);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: #0000ff;
+      color: white;
+      text-align: center;
+      padding: 1.5rem 0;
+      font-size: 1.8rem;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    section {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .input{
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    section:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      color: #0000ff;
+    }
+
+    input[type="text"] {
+      padding: 0.8rem;
+      width: 70%;
+      border: 2px solid #0000ff;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #0000ff;
+    }
+
+    button {
+      padding: 0.8rem 1.5rem;
+      margin-left: 1rem;
+      background-color: #0000ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #5f5ffc;
+    }
+
+    .days_container, .weather_container {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .days, .boxes {
+      background: #f0f0f0;
+      padding: 1rem;
+      border-radius: 10px;
+      flex: 1 1 calc(33% - 1rem);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .days:hover, .boxes:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .icon {
+      width: 50px;
+      text-align: center;
+    }
+
+    footer {
+      background-color: #0f0fff;
+      color: white;
+      text-align: center;
+      padding: 1rem 0;
+      font-size: 0.9rem;
+      margin-top: auto;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Weather App</h1>
+  </header>
+
+  <main>
+    <section class="input">
+      <input type="text" id="location-input" placeholder="Enter location" />
+      <button id="search-button">Search</button>
+    </section>
+
+    <section id="weather-info">
+      <h2>Current Weather</h2>
+      <div id="weather-data" class="weather_container"></div>
+    </section>
+
+    <section id="forecast-info">
+      <h2>3-Day Forecast</h2>
+      <div id="forecast-data" class="days_container"></div>
+    </section>
+
+    <section id="location-info">
+      <h2>Location</h2>
+      <div id="location-data"></div>
+    </section>
+
+    <section id="settings-info">
+      <h2>Settings</h2>
+      <div id="settings-data"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Weather App. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const weatherData = document.getElementById('weather-data');
+      const forecastData = document.getElementById('forecast-data');
+      const locationData = document.getElementById('location-data');
+      const settingsData = document.getElementById('settings-data');
+      const searchButton = document.getElementById('search-button');
+      const locationInput = document.getElementById('location-input');
+
+      const apiKey = '91b5e8b4bcaa4f43837110617252604';
+
+      function fetchWeatherData(location) {
+        fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&days=3&aqi=no&alerts=no`)
+          .then(response => response.json())
+          .then(data => {
+
+            weatherData.innerHTML = `
+              <p class="boxes">Temperature: ${data.current.temp_c}°C</p>
+              <p class="boxes">Condition: ${data.current.condition.text}</p>
+              <div class="boxes icon"><img src="${data.current.condition.icon}" alt="Weather icon" /></div>
+            `;
+
+            let forecastHTML = '';
+            data.forecast.forecastday.forEach(day => {
+              forecastHTML += `
+                <div class="days">${day.date}: ${day.day.avgtemp_c}°C, ${day.day.condition.text}</div>
+              `;
+            });
+            forecastData.innerHTML = forecastHTML;
+
+            locationData.innerHTML = `
+              <p>City: ${data.location.name}</p>
+              <p>Region: ${data.location.region}</p>
+              <p>Country: ${data.location.country}</p>
+            `;
+
+            settingsData.innerHTML = `<p>Units: Metric (°C)</p>`;
+          })
+          .catch(error => {
+            console.error('Error fetching weather data:', error);
+            weatherData.innerHTML = '<p>Failed to load weather data.</p>';
+            forecastData.innerHTML = '<p>Failed to load forecast data.</p>';
+          });
+      }
+
+      fetchWeatherData('Kotla Arab Ali Khan');
+
+      searchButton.addEventListener('click', function () {
+        const location = locationInput.value.trim();
+        if (location) {
+          fetchWeatherData(location);
+        } else {
+          alert('Please enter a location!');
+        }
+      });
+    });
+  </script>
+
+</body>
+
+</html>
